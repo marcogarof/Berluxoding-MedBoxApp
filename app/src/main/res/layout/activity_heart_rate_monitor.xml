@@ -16,7 +16,7 @@
         android:layout_below="@id/camera_preview"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="Posiziona il dito sulla fotocamera"
+        android:text="Posiziona il dito sulla fotocamera e sul flash"
         android:textSize="18sp"
         android:textColor="#000000" />
 
