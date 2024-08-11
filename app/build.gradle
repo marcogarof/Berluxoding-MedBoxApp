@@ -34,6 +34,10 @@ android {
     useLibrary 'androidx.test:core:1.4.0'
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation"  // Or add this block
+}
+
 dependencies {
     // AndroidX Libraries
     implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -53,4 +57,5 @@ dependencies {
 
     // Test JUnit
     testImplementation 'androidx.test.ext:junit:1.1.5' // Usa l'ultima versione stabile
+    testImplementation "androidx.test:core:1.4.0"
 }

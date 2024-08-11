@@ -115,20 +115,6 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         imageReader.setOnImageAvailableListener(imageReaderListener, backgroundHandler);
     }
 
-    /**
-     * private ImageReader.OnImageAvailableListener imageReaderListener = reader -> {
-     *         if (!measuring) return;
-     *
-     *         try (Image image = reader.acquireLatestImage()) {
-     *             if (image != null) {
-     *                 ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
-     *                 ByteBuffer uBuffer = image.getPlanes()[1].getBuffer();
-     *                 ByteBuffer vBuffer = image.getPlanes()[2].getBuffer();
-     *                 processFrameData(yBuffer, uBuffer, vBuffer);
-     *             }
-     *         }
-     *     };
-     */
 
     private ImageReader.OnImageAvailableListener imageReaderListener = reader -> {
         if (!measuring) return;
