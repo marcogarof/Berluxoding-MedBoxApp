@@ -113,10 +113,13 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     private void setupImageReader() {
         imageReader = ImageReader.newInstance(640, 480, ImageFormat.YUV_420_888, 2);
         imageReader.setOnImageAvailableListener(imageReaderListener, backgroundHandler);
+
+        Log.d("HeartRateMonitor", "ImageReader setup complete");
     }
 
 
     private ImageReader.OnImageAvailableListener imageReaderListener = reader -> {
+        Log.d("HeartRateMonitor", "ImageReader callback triggered"); //Verifica se il metodo imageReaderListener viene chiamato
         if (!measuring) return;
 
         try (Image image = reader.acquireLatestImage()) {
@@ -167,6 +170,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         }
     };
 
+    /*
     private void startCaptureSession() {
         try {
             // Prepare the Surface from the SurfaceView
@@ -235,6 +239,70 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    */
+
+    private void startCaptureSession() {
+        try {
+            // Prepara il Surface per la visualizzazione della fotocamera
+            SurfaceHolder holder = cameraPreview.getHolder();
+            Surface previewSurface = holder.getSurface();
+
+            // Configura l'ImageReader come target della sessione di acquisizione
+            List<Surface> outputSurfaces = new ArrayList<>();
+            outputSurfaces.add(previewSurface);
+            outputSurfaces.add(imageReader.getSurface());
+
+            // Configura la richiesta di acquisizione
+            captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            captureRequestBuilder.addTarget(previewSurface);
+            captureRequestBuilder.addTarget(imageReader.getSurface());
+
+            // Crea e avvia la sessione di acquisizione
+            cameraDevice.createCaptureSession(outputSurfaces, new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    captureSession = session;
+                    try {
+                        // Configura la richiesta di acquisizione
+                        captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                        captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
+
+                        captureRequest = captureRequestBuilder.build();
+
+                        // Define the CaptureCallback
+                        captureCallback = new CameraCaptureSession.CaptureCallback() {
+                            @Override
+                            public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+                                super.onCaptureProgressed(session, request, partialResult);
+                            }
+
+                            @Override
+                            public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                                super.onCaptureCompleted(session, request, result);
+                            }
+                        };
+
+                        // Avvia la visualizzazione della fotocamera
+                        captureSession.setRepeatingRequest(captureRequest, captureCallback, backgroundHandler);
+                    } catch (CameraAccessException e) {
+                        Log.e("HeartRateMonitor", "Error configuring capture session", e);
+                    }
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                    Log.e("HeartRateMonitor", "Capture session configuration failed.");
+                    runOnUiThread(() -> {
+                        Toast.makeText(HeartRateMonitorActivity.this, "Camera configuration failed. Please try again.", Toast.LENGTH_LONG).show();
+                    });
+                    closeCamera();
+                }
+            }, backgroundHandler);
+        } catch (CameraAccessException e) {
+            Log.e("HeartRateMonitor", "Error accessing camera", e);
+        }
+    }
+
 
     private void closeCamera() {
         if (captureSession != null) {
@@ -252,6 +320,8 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     }
 
     private void processFrameData(ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer) {
+        Log.d("HeartRateMonitor", "Processing frame data");
+
         // Conversione YUV a RGB
         int width = imageReader.getWidth();
         int height = imageReader.getHeight();
@@ -275,27 +345,30 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         processFrame();
     }
 
+    @NonNull
+    private int[] decodeYUV420SP(@NonNull ByteBuffer yBuffer, @NonNull ByteBuffer uBuffer, @NonNull ByteBuffer vBuffer, int width, int height) {
+        final int ySize = width * height;
+        final int uvSize = ySize / 4;
+        int[] rgb = new int[ySize]; // RGB array size should match the Y size
+        byte[] y = new byte[ySize];
+        byte[] u = new byte[uvSize];
+        byte[] v = new byte[uvSize];
 
-    private int[] decodeYUV420SP(ByteBuffer yBuffer, ByteBuffer uBuffer, ByteBuffer vBuffer, int width, int height) {
-        final int frameSize = width * height;
-        int[] rgb = new int[frameSize];
-        byte[] y = new byte[frameSize];
-        byte[] u = new byte[frameSize / 4];
-        byte[] v = new byte[frameSize / 4];
-
+        // Read data from buffers into arrays
         yBuffer.get(y);
         uBuffer.get(u);
         vBuffer.get(v);
 
         for (int j = 0, yp = 0; j < height; j++) {
-            int uvp = frameSize + (j >> 1) * width, uOffset = 0, vOffset = 0;
+            int uvp = (j >> 1) * width / 2;
             for (int i = 0; i < width; i++, yp++) {
                 int yVal = (0xff & y[yp]) - 16;
                 if (yVal < 0) yVal = 0;
-                if ((i & 1) == 0) {
-                    vOffset = (0xff & v[uvp++]) - 128;
-                    uOffset = (0xff & u[uvp++]) - 128;
-                }
+
+                int uOffset = (0xff & u[uvp]) - 128;
+                int vOffset = (0xff & v[uvp]) - 128;
+
+                if ((i & 1) == 1) uvp++; // Increment UV position only on even indices
 
                 int y1192 = 1192 * yVal;
                 int r = (y1192 + 1634 * vOffset);
@@ -312,7 +385,8 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         return rgb;
     }
 
-    private int calculateRedIntensity(int[] rgb) {
+
+    private int calculateRedIntensity(@NonNull int[] rgb) {
         long redSum = 0;
         for (int color : rgb) {
             int red = (color >> 16) & 0xff;
@@ -322,6 +396,11 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     }
 
     private void processFrame() {
+        //Verifica che le liste timeStamps e redIntensities contengano dati sufficienti per calcolare il BPM.
+        Log.d("HeartRateMonitor", "Time stamps size: " + timeStamps.size());
+        Log.d("HeartRateMonitor", "Red intensities size: " + redIntensities.size());
+
+
         if (redIntensities.size() >= 30) {
             List<Long> filteredTimeStamps = new ArrayList<>(timeStamps);
             List<Integer> filteredRedIntensities = new ArrayList<>(redIntensities);
@@ -348,6 +427,9 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                 }
                 long averageInterval = totalInterval / (peakIndices.size() - 1);
                 int bpm = (int) (60000 / averageInterval);
+
+                Log.d("HeartRateMonitor", "Heart rate calculated: " + bpm); //Verifica che la UI venga aggiornata correttamente:
+
                 runOnUiThread(() -> heartRateText.setText("Frequenza Cardiaca: " + bpm));
             }
         }
