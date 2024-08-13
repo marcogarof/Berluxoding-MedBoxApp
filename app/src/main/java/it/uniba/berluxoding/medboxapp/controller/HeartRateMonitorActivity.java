@@ -408,6 +408,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 }
 
 
+
 class ImageDataPlusTimeStamp {
 
     private byte[] y;
