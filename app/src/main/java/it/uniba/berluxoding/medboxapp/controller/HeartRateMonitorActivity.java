@@ -383,7 +383,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                 }
             }
 
-            Log.d("HeartRateMonitor", "Peak indices: " + peakIndices);
+            Log.d("HeartRateMonitor", "Peak indices size: " + peakIndices.size());
 
             //Calcolo della Frequenza Cardiaca
             if (peakIndices.size() >= 2) {
