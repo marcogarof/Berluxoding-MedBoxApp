@@ -30,7 +30,7 @@ import androidx.core.content.ContextCompat;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -185,6 +185,16 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         }
     };
 
+    /*
+    //DA ELIMINARE
+
+    // Tempo di esposizione suggerito: 30 millisecondi, non aumentare per un cell che a va 30 fps
+    private long desiredExposureTime = 30_000_000L; // 30 millisecondi in nanosecondi (1 ms = 1,000,000 ns)
+
+    // ISO suggerito: 200 (puoi regolarlo tra 100-400 a seconda delle condizioni di luce)
+    private int desiredISO = 250;
+    */
+
     private void startCaptureSession() {
         try {
             // Prepara il Surface per la visualizzazione della fotocamera
@@ -211,6 +221,32 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                         captureRequestBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
 
+                        /*
+                        //DA ELIMINARE
+
+                        // Disattiva l'Auto Exposure (AE), che è il sistema di esposizione automatica della fotocamera.
+                        // Questo permette di fissare manualmente l'esposizione (tempo di apertura dell'otturatore).
+                        //captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+
+                        // Imposta manualmente il tempo di esposizione (in nanosecondi).
+                        // 'desiredExposureTime' è una variabile che contiene il valore del tempo di esposizione scelto.
+                        //captureRequestBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, desiredExposureTime);
+
+                        // Imposta manualmente la sensibilità ISO della fotocamera, che determina quanto la fotocamera è sensibile alla luce.
+                        // 'desiredISO' è una variabile che contiene il valore ISO scelto.
+                        //captureRequestBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, desiredISO);
+
+                        // Disattiva l'Auto White Balance (AWB), ovvero il bilanciamento automatico del bianco,
+                        // per evitare che la fotocamera modifichi i colori in base alle condizioni di luce.
+                        //captureRequestBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);// oppure DAYLIGHT invece di OFF
+
+                        // Imposta la modalità di correzione del colore della fotocamera per utilizzare una matrice di trasformazione personalizzata.
+                        // Questa modalità consente di avere un controllo più preciso su come i colori vengono interpretati dalla fotocamera.
+                        //captureRequestBuilder.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX);
+
+                        //if(isHDRSupported()) captureRequestBuilder.set(CaptureRequest.CONTROL_SCENE_MODE, CaptureRequest.CONTROL_SCENE_MODE_HDR);
+                        */
+
                         captureRequest = captureRequestBuilder.build();
 
                         // Define the CaptureCallback
@@ -228,6 +264,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
                         // Avvia la visualizzazione della fotocamera
                         captureSession.setRepeatingRequest(captureRequest, captureCallback, backgroundHandler);
+
                     } catch (CameraAccessException e) {
                         Log.e("HeartRateMonitor", "Error configuring capture session", e);
                     }
@@ -247,6 +284,41 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         }
     }
 
+    /*
+        // DA ELIMINARE
+    private boolean isHDRSupported(){
+        CameraManager manager = (CameraManager) getSystemService(CAMERA_SERVICE);
+        String cameraId = "";
+        try {
+            cameraId = manager.getCameraIdList()[0];
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+
+            // Controlla il supporto per HDR
+            int[] availableSceneModes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_SCENE_MODES);
+            boolean hdrSupported = false;
+
+            if (availableSceneModes != null) {
+                for (int mode : availableSceneModes) {
+                    if (mode == CameraMetadata.CONTROL_SCENE_MODE_HDR) {
+                        hdrSupported = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hdrSupported) {
+                Log.d("HDR Support", "Camera ID " + cameraId + " supports HDR.");
+                return true;
+            }
+
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("HDR Support", "Camera ID " + cameraId + " does not support HDR.");
+        return false;
+    }
+    */
 
     private void closeCamera() {
         if (captureSession != null) {
@@ -294,7 +366,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         //Log.d("HeartRateMonitor", "RGB data: " + Arrays.toString(rgb));
 
         // Calcola l'intensità rossa
-        int redIntensity = calculateRedIntensity(rgb);
+        double redIntensity = calculateLuminance(normalizeImage(rgb));
         //Log.d("HeartRateMonitor", "Red intensity: " + redIntensity);
 
         redIntensitiesPlusTimeStamps.add( new RedIntensityPlusTimeStamp(redIntensity, currentTime) );
@@ -306,6 +378,26 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                 redIntensities.remove(0);
             }
              */
+    }
+
+    private int[] normalizeImage(@NonNull int[] rgb) {
+        int max = Arrays.stream(rgb).max().orElse(255);
+        int min = Arrays.stream(rgb).min().orElse(0);
+        return Arrays.stream(rgb)
+                .map(color -> (color - min) * 255 / (max - min))
+                .toArray();
+    }
+
+    private double calculateLuminance(@NonNull int[] rgb) {
+        double luminanceSum = 0.0;
+        for (int color : rgb) {
+            int r = (color >> 16) & 0xff;
+            int g = (color >> 8) & 0xff;
+            int b = color & 0xff;
+            double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            luminanceSum += luminance;
+        }
+        return luminanceSum / rgb.length;
     }
 
     @NonNull
@@ -348,7 +440,6 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         return rgb;
     }
 
-
     private int calculateRedIntensity(@NonNull int[] rgb) {
         long redSum = 0;
         for (int color : rgb) {
@@ -364,15 +455,34 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
         if (redIntensitiesPlusTimeStamps.size() >= 30) {
 
-            List<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStampList = new ArrayList<>(redIntensitiesPlusTimeStamps);
+            List<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStampList = new ArrayList<>(redIntensitiesPlusTimeStamps); //smoothData(smoothData(smoothData(smoothData(smoothData(new ArrayList<>(redIntensitiesPlusTimeStamps),3),3),3),3),3);
 
-            /*
-            //potrebbe potenzialmente rendere più difficile l'individuazione dei picchi
+
             // Applicazione della media mobile
-            for (int i = 1; i < redIntensities.size() - 1; i++) {
-                filteredRedIntensities.set(i, (redIntensities.get(i - 1) + redIntensities.get(i) + redIntensities.get(i + 1)) / 3);
+            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                        (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
+                );
             }
-             */
+
+            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                        (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
+                );
+            }
+
+            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                        (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
+                );
+            }
+
+            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                        (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
+                );
+            }
+
 
             // Rilevamento dei picchi
             List<RedIntensityPlusTimeStamp> peakIndices = new ArrayList<>();
@@ -404,6 +514,23 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         else runOnUiThread(() -> instructionsText.setText("Acquisizione immagini fallita! Riprova"));
 
     }
+
+    @NonNull
+    private List<RedIntensityPlusTimeStamp> smoothData(@NonNull List<RedIntensityPlusTimeStamp> data, int windowSize) {
+        List<RedIntensityPlusTimeStamp> smoothedData = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            int windowStart = Math.max(0, i - windowSize / 2);
+            int windowEnd = Math.min(data.size(), i + windowSize / 2 + 1);
+            double sum = 0;
+            for (int j = windowStart; j < windowEnd; j++) {
+                sum += data.get(j).getRedIntensity();
+            }
+            smoothedData.add(new RedIntensityPlusTimeStamp(sum / (windowEnd - windowStart), data.get(i).getCurrentTime()));
+        }
+        data.clear();
+        return smoothedData;
+    }
+
 
 }
 
@@ -457,21 +584,22 @@ class ImageDataPlusTimeStamp {
 
 class RedIntensityPlusTimeStamp {
 
-    private int redIntensity;
+    private double redIntensity;
     private long currentTime;
 
-    RedIntensityPlusTimeStamp(int redIntensity, long currentTime){
+    RedIntensityPlusTimeStamp(double redIntensity, long currentTime){
         super();
         this.redIntensity = redIntensity;
         this.currentTime = currentTime;
     }
 
-    public int getRedIntensity() {
+    public double getRedIntensity() {
         return redIntensity;
     }
 
-    public void setRedIntensity(int redIntensity) {
+    public RedIntensityPlusTimeStamp setRedIntensity(double redIntensity) {
         this.redIntensity = redIntensity;
+        return this;
     }
 
     public long getCurrentTime() {
