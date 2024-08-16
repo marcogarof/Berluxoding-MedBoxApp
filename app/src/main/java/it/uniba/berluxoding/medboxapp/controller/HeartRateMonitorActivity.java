@@ -455,34 +455,42 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
         if (redIntensitiesPlusTimeStamps.size() >= 30) {
 
-            List<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStampList = new ArrayList<>(redIntensitiesPlusTimeStamps); //smoothData(smoothData(smoothData(smoothData(smoothData(new ArrayList<>(redIntensitiesPlusTimeStamps),3),3),3),3),3);
+            //9
+            List<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStampList = smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(new ArrayList<>(redIntensitiesPlusTimeStamps),3),3),3),3),3),3),3),3),3);
 
-
+            /*
             // Applicazione della media mobile
+            //1
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
                 redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
-
+            //2
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
                 redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
-
+            //3
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
                 redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
-
+            //4
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
                 redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
-
+            //5
+            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                        (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
+                );
+            }
+            */
 
             // Rilevamento dei picchi
             List<RedIntensityPlusTimeStamp> peakIndices = new ArrayList<>();
