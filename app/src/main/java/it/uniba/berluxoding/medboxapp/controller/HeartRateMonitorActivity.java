@@ -52,7 +52,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     private boolean measuring = false;
 
     //private LinkedHashSet<ImageDataPlusTimeStamp> capturedImagesPlusTimeStamps = new LinkedHashSet<>();
-    private LinkedHashSet<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStamps = new LinkedHashSet<>();
+    private LinkedHashSet<BrightnessPlusTimeStamp> brightnessesPlusTimeStamps = new LinkedHashSet<>();
 
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -84,10 +84,10 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
     private void startMeasurement() {
         startMeasurementButton.setText("Ferma Misurazione");
-        instructionsText.setText("Aspetta 10 sec ...");
+        instructionsText.setText("Attendi 15 sec ...");
         measuring = true;
 
-        if(!redIntensitiesPlusTimeStamps.isEmpty()) redIntensitiesPlusTimeStamps.clear();
+        if(!brightnessesPlusTimeStamps.isEmpty()) brightnessesPlusTimeStamps.clear();
 
         //l'acquisizione di immagini deve operare per un tempo di 10 sec
         startBackgroundThread();
@@ -95,7 +95,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         openCamera();
 
         // Posticipo l'invocazione di stopMeasurement() di 10 secondi
-        handler.postDelayed(() -> stopMeasurement(), 10000); // 10000 millisecondi = 10 secondi
+        handler.postDelayed(() -> stopMeasurement(), 15000); // 10000 millisecondi = 10 secondi
 
     }
 
@@ -110,7 +110,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         closeImageReader();
         stopBackgroundThread();
         startMeasurementButton.setText("Inizia Misurazione");
-        instructionsText.setText("Posiziona la punta del dito indice sulla fotocamera, la parte posteriore sul flash");
+        instructionsText.setText("Posiziona il dito indice sulla fotocamera e sul flash");
     }
 
     private void startBackgroundThread() {
@@ -353,7 +353,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         }
     }
 
-    private void processFrameData(Image image, long currentTime) {
+    private void processFrameData(@NonNull Image image, long currentTime) {
         //Log.d("HeartRateMonitor", "Processing frame data");
 
         ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
@@ -366,10 +366,10 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         //Log.d("HeartRateMonitor", "RGB data: " + Arrays.toString(rgb));
 
         // Calcola l'intensità rossa
-        double redIntensity = calculateLuminance(normalizeImage(rgb));
+        double brightness = calculateLuminance(normalizeImage(rgb));
         //Log.d("HeartRateMonitor", "Red intensity: " + redIntensity);
 
-        redIntensitiesPlusTimeStamps.add( new RedIntensityPlusTimeStamp(redIntensity, currentTime) );
+        brightnessesPlusTimeStamps.add( new BrightnessPlusTimeStamp(brightness, currentTime) ); //PROVARE A CALCOLARE currentTime QUI E VEDERE COSA SUCCEDE, invece di in imageReaderListener
 
         /*
             //LIMITARE I FRAME ACQUISITI PER NON ACCUMULARE TROPPI DATI
@@ -451,53 +451,62 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
     private void processFrames() {
         //Verifica che la lista con timeStamps e redIntensities contengano dati sufficienti per calcolare il BPM.
-        Log.d("HeartRateMonitor", "Red intensities plus times stamps list size: " + redIntensitiesPlusTimeStamps.size());
+        Log.d("HeartRateMonitor", "Brightnesses plus times stamps list size: " + brightnessesPlusTimeStamps.size());
 
-        if (redIntensitiesPlusTimeStamps.size() >= 30) {
+        if (brightnessesPlusTimeStamps.size() >= 30) {
 
-            //9
-            List<RedIntensityPlusTimeStamp> redIntensitiesPlusTimeStampList = smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(new ArrayList<>(redIntensitiesPlusTimeStamps),3),3),3),3),3),3),3),3),3);
+            //List<BrightnessPlusTimeStamp> smoothBrightnessesPlusTimeStamps = smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(smoothData(new ArrayList<>(brightnessesPlusTimeStamps),3),3),3),3),3),3),3),3),3);
+
+            //media mobile 9 volte
+            final int numeroApplicazioniDellaMediaMobile = 9;
+            final int windowSize = 3;
+
+            List<BrightnessPlusTimeStamp> smoothBrightnessesPlusTimeStamps = new ArrayList<>(brightnessesPlusTimeStamps);
+
+            for (int i = numeroApplicazioniDellaMediaMobile; i > 0; i--) {
+                smoothBrightnessesPlusTimeStamps = smoothData(smoothBrightnessesPlusTimeStamps, windowSize);
+            }
 
             /*
             // Applicazione della media mobile
             //1
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setBrightness(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
             //2
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setBrightness(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
             //3
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setBrightness(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
             //4
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setBrightness(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
             //5
             for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setRedIntensity(
+                redIntensitiesPlusTimeStampList.set(i, redIntensitiesPlusTimeStampList.get(i).setBrightness(
                         (redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i).getRedIntensity() + redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) / 3)
                 );
             }
             */
 
             // Rilevamento dei picchi
-            List<RedIntensityPlusTimeStamp> peakIndices = new ArrayList<>();
-            for (int i = 1; i < redIntensitiesPlusTimeStampList.size() - 1; i++) {
-                if (redIntensitiesPlusTimeStampList.get(i).getRedIntensity() > redIntensitiesPlusTimeStampList.get(i - 1).getRedIntensity() &&
-                        redIntensitiesPlusTimeStampList.get(i).getRedIntensity() > redIntensitiesPlusTimeStampList.get(i + 1).getRedIntensity()) {
-                    peakIndices.add(redIntensitiesPlusTimeStampList.get(i));
+            List<BrightnessPlusTimeStamp> peakIndices = new ArrayList<>();
+            for (int i = 1; i < smoothBrightnessesPlusTimeStamps.size() - 1; i++) {
+                if (smoothBrightnessesPlusTimeStamps.get(i).getBrightness() > smoothBrightnessesPlusTimeStamps.get(i - 1).getBrightness() &&
+                        smoothBrightnessesPlusTimeStamps.get(i).getBrightness() > smoothBrightnessesPlusTimeStamps.get(i + 1).getBrightness()) {
+                    peakIndices.add(smoothBrightnessesPlusTimeStamps.get(i));
                 }
             }
 
@@ -505,10 +514,8 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
             //Calcolo della Frequenza Cardiaca
             if (peakIndices.size() >= 2) {
-                long totalInterval = 0;
-                for (int i = 1; i < peakIndices.size(); i++) {
-                    totalInterval += peakIndices.get(i).getCurrentTime() - peakIndices.get(i - 1).getCurrentTime();
-                }
+                long totalInterval = peakIndices.get(peakIndices.size()-1).getCurrentTime() - peakIndices.get(0).getCurrentTime();
+                Log.d("HeartRateMonitor", "Total interval: " + totalInterval);
                 long averageInterval = totalInterval / (peakIndices.size() - 1);
                 int bpm = (int) (60000 / averageInterval);
 
@@ -524,16 +531,16 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private List<RedIntensityPlusTimeStamp> smoothData(@NonNull List<RedIntensityPlusTimeStamp> data, int windowSize) {
-        List<RedIntensityPlusTimeStamp> smoothedData = new ArrayList<>();
+    private List<BrightnessPlusTimeStamp> smoothData(@NonNull List<BrightnessPlusTimeStamp> data, int windowSize) {
+        List<BrightnessPlusTimeStamp> smoothedData = new ArrayList<>();
         for (int i = 0; i < data.size(); i++) {
             int windowStart = Math.max(0, i - windowSize / 2);
             int windowEnd = Math.min(data.size(), i + windowSize / 2 + 1);
             double sum = 0;
             for (int j = windowStart; j < windowEnd; j++) {
-                sum += data.get(j).getRedIntensity();
+                sum += data.get(j).getBrightness();
             }
-            smoothedData.add(new RedIntensityPlusTimeStamp(sum / (windowEnd - windowStart), data.get(i).getCurrentTime()));
+            smoothedData.add(new BrightnessPlusTimeStamp(sum / (windowEnd - windowStart), data.get(i).getCurrentTime()));
         }
         data.clear();
         return smoothedData;
@@ -608,6 +615,34 @@ class RedIntensityPlusTimeStamp {
     public RedIntensityPlusTimeStamp setRedIntensity(double redIntensity) {
         this.redIntensity = redIntensity;
         return this;
+    }
+
+    public long getCurrentTime() {
+        return currentTime;
+    }
+
+    public void setCurrentTime(long currentTime) {
+        this.currentTime = currentTime;
+    }
+}
+
+class BrightnessPlusTimeStamp {
+
+    private double brightness;
+    private long currentTime;
+
+    BrightnessPlusTimeStamp(double brightness, long currentTime){
+        super();
+        this.brightness = brightness;
+        this.currentTime = currentTime;
+    }
+
+    public double getBrightness() {
+        return brightness;
+    }
+
+    public void setBrightness(double brightness) {
+        this.brightness = brightness;
     }
 
     public long getCurrentTime() {
