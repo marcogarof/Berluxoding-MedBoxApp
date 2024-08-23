@@ -124,14 +124,14 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
      * Modifica il testo del pulsante per indicare che la misurazione può essere fermata e aggiorna le istruzioni per l'utente.
      * Inizia un thread di background per gestire l'acquisizione delle immagini dalla fotocamera,
      * configura l'ImageReader e apre la fotocamera per iniziare a acquisire le immagini.
-     * Pianifica la chiamata a {@link #stopMeasurement()} dopo 15 secondi per terminare la misurazione.
+     * Pianifica la chiamata a {@link #stopMeasurement()} dopo 10 secondi per terminare la misurazione.
      */
     private void startMeasurement() {
         // Cambia il testo del pulsante per indicare che la misurazione può essere fermata
         startMeasurementButton.setText("Ferma Misurazione");
 
         // Aggiorna il testo delle istruzioni per l'utente, informandolo che deve attendere 15 secondi
-        instructionsText.setText("Attendi 15 sec ...");
+        instructionsText.setText("Attendi 10 sec ...");
 
         // Imposta il flag di misurazione a true per indicare che la misurazione è in corso
         measuring = true;
@@ -149,9 +149,9 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         // Apre la fotocamera e avvia la sessione di acquisizione
         openCamera();
 
-        // Pianifica la chiamata a stopMeasurement() dopo 15 secondi
-        // Questo assicura che la misurazione duri 15 secondi
-        handler.postDelayed(() -> stopMeasurement(), 15000); // 15000 millisecondi = 15 secondi
+        // Pianifica la chiamata a stopMeasurement() dopo 10 secondi
+        // Questo assicura che la misurazione duri 10 secondi
+        handler.postDelayed(() -> stopMeasurement(), 10000); // 10000 millisecondi = 10 secondi
     }
 
     /**
@@ -181,7 +181,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
 
         // Ripristina il testo del pulsante e le istruzioni dell'interfaccia utente
         startMeasurementButton.setText("Inizia Misurazione");
-        instructionsText.setText("Posiziona il dito indice sulla fotocamera e sul flash");
+        instructionsText.setText("Posiziona il dito indice sulla fotocamera, con la parte posteriore sul flas");
     }
 
     /**
