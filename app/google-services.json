@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "352985420945",
+    "firebase_url": "https://asilapp-de42c-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "asilapp-de42c",
+    "storage_bucket": "asilapp-de42c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352985420945:android:0eed2833fe9fe80a121b30",
+        "android_client_info": {
+          "package_name": "it.uniba.berluxoding.AsilApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1F36qVjGF90HC1TTgeACPRVKB5B9EjLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352985420945:android:861f781b3e373122121b30",
+        "android_client_info": {
+          "package_name": "it.uniba.berluxoding.medboxapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1F36qVjGF90HC1TTgeACPRVKB5B9EjLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MedBoxApp</string>
+    <string name="waiting">Waiting request from AsilApp.</string>
+    <string name="pressione_ottimale">120/80 mmHg</string>
+    <string name="pressione_alta">140/90 mmHg</string>
+    <string name="pressione_bassa">90/60 mmHg</string>
 </resources>

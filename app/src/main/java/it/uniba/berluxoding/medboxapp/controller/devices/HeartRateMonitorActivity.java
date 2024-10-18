@@ -1,4 +1,4 @@
-package it.uniba.berluxoding.medboxapp.controller;
+package it.uniba.berluxoding.medboxapp.controller.devices;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -71,7 +71,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     private TextView heartRateText;
 
     //Pulsante per avviare e fermare la misurazione della frequenza cardiaca.
-    private Button startMeasurementButton;
+    private Button startMeasurementButton, closeButton;
 
     //Flag per indicare se la misurazione della frequenza cardiaca è in corso.
     private boolean measuring = false;
@@ -108,6 +108,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         instructionsText = findViewById(R.id.instructions_text);
         heartRateText = findViewById(R.id.heart_rate_text);
         startMeasurementButton = findViewById(R.id.start_measurement_button);
+        closeButton = findViewById(R.id.close_button);
 
         // Imposta un listener per il click sul bottone di avvio della misurazione
         startMeasurementButton.setOnClickListener(v -> {
@@ -116,6 +117,9 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
             } else {
                 stopMeasurement(); // Ferma la misurazione se è già in corso
             }
+        });
+        closeButton.setOnClickListener(v -> {
+            finish();
         });
     }
 
@@ -665,6 +669,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                 Log.d("HeartRateMonitor", "Heart rate calculated: " + bpm);
 
                 runOnUiThread(() -> heartRateText.setText("Heart Rate: " + bpm));
+
             } else {
                 runOnUiThread(() -> instructionsText.setText("Calcolo frequenza cardiaca fallito! Riprova"));
             }
