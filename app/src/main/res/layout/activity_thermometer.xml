@@ -7,4 +7,43 @@
     android:layout_height="match_parent"
     tools:context=".controller.devices.ThermometerActivity">
 
+    <Button
+        android:id="@+id/lower_limit"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:text="@string/temperatura_buona1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/superior_limit"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    </Button>
+
+    <Button
+        android:id="@+id/superior_limit"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:text="@string/temperatura_buona2"
+        app:layout_constraintTop_toBottomOf="@id/lower_limit"
+        app:layout_constraintBottom_toTopOf="@id/burning_limit"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    </Button>
+
+    <Button
+        android:id="@+id/burning_limit"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        android:text="@string/temperatura_scottante"
+        app:layout_constraintTop_toBottomOf="@id/superior_limit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    </Button>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

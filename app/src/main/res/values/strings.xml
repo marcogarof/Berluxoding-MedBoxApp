@@ -4,4 +4,7 @@
     <string name="pressione_ottimale">120/80 mmHg</string>
     <string name="pressione_alta">140/90 mmHg</string>
     <string name="pressione_bassa">90/60 mmHg</string>
+    <string name="temperatura_buona1">35,5°C</string>
+    <string name="temperatura_buona2">37,0°C</string>
+    <string name="temperatura_scottante">38,8°C</string>
 </resources>
