@@ -34,11 +34,15 @@ import androidx.core.content.ContextCompat;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import it.uniba.berluxoding.medboxapp.R;
 
@@ -97,11 +101,22 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
     //Callback per la cattura delle immagini dalla fotocamera.
     private CameraCaptureSession.CaptureCallback captureCallback;
 
+    //Riferimento al database
+    private DatabaseReference mDatabase;
+
+    //Identificativo della misurazione, e percorsi in cui salvare la misurazione
+    private String key, savePath, savePath2, savePath3;
+
+    private final String TAG = "HEART_RATE_MONITOR_ACTIVITY";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_heart_rate_monitor);
+
+        String userId = getIntent().getStringExtra("userId");
+        setReferences(userId);
 
         cameraPreview = findViewById(R.id.camera_preview);
         previewHolder = cameraPreview.getHolder(); // Ottiene il SurfaceHolder della preview della fotocamera
@@ -669,6 +684,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
                 Log.d("HeartRateMonitor", "Heart rate calculated: " + bpm);
 
                 runOnUiThread(() -> heartRateText.setText("Heart Rate: " + bpm));
+                dataStructure(String.valueOf(bpm));
 
             } else {
                 runOnUiThread(() -> instructionsText.setText("Calcolo frequenza cardiaca fallito! Riprova"));
@@ -676,6 +692,60 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         } else {
             runOnUiThread(() -> instructionsText.setText("Acquisizione immagini fallita! Riprova"));
         }
+    }
+
+    /**
+     * Metodo che imposta i percorsi in cui salvare i dati nel database nello spazio di memoria disponibile
+     * per il singolo utente.
+     * @param userId Identificativo dell'utente che sta utilizzando il dispostivo nel momento attuale.
+     */
+    private void setReferences (String userId) {
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference userRef = mDatabase.child("AsilApp").child(userId);
+        key = userRef.child("misurazioni").push().getKey();
+        savePath = "AsilApp/" + userId + "/misurazioni/" + key;
+        savePath2 = "AsilApp/" + userId + "/misurazioni-strumento/cardifrequenzimetro/" + key;
+        savePath3 = "medbox/risposta/misurazioneId";
+    }
+
+    /**
+     * Metodo che crea una mappa dei dati da salvare, necessita del valore della misurazione da salvare.
+     * @param valore Risultato della misurazione.
+     */
+    private void dataStructure(String valore) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("id", key);
+        map.put("strumento", "cardifrequenzimetro");
+        map.put("valore", valore);
+        //ToDo gestione della data e dell'ora
+        map.put("data", "02/12/1994");
+        map.put("orario", "12:00");
+
+        save(map);
+    }
+
+    /**
+     * Metodo che salva i dati nei percorsi indicati.
+     * @param map Struttura dati da salvare.
+     */
+    private void save (HashMap<String, String> map) {
+        Log.d(TAG, "savingData!");
+        HashMap<String, Object> saveMap = new HashMap<>();
+        saveMap.put(savePath, map);
+        saveMap.put(savePath2, map);
+        saveMap.put(savePath3, key);
+        mDatabase.updateChildren(saveMap)
+                .addOnSuccessListener(aVoid -> {
+                    // Successo
+                    Log.d("Firebase", "Dati salvati correttamente in più percorsi.");
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    // Fallimento
+                    Log.e("Firebase", "Errore durante il salvataggio dei dati: " + e.getMessage());
+                    finish();
+                });
+
     }
 
     /**

@@ -64,22 +64,22 @@ public class BloodPressureActivity extends AppCompatActivity {
 
         ottimale.setOnClickListener(v -> {
             pressione = "120/80mmHg";
-            dataStructure();
+            dataStructure(pressione);
         });
         bassa.setOnClickListener(v -> {
             pressione = "90/60mmHg";
-            dataStructure();
+            dataStructure(pressione);
         });
         alta.setOnClickListener(v -> {
             pressione = "140/90mmHg";
-            dataStructure();
+            dataStructure(pressione);
         });
     }
-    private void dataStructure() {
+    private void dataStructure(String valore) {
         HashMap<String, String> map = new HashMap<>();
         map.put("id", key);
         map.put("strumento", "sfigmomanometro");
-        map.put("valore", pressione);
+        map.put("valore", valore);
         //ToDo gestione della data e dell'ora
         map.put("data", "02/12/1994");
         map.put("orario", "12:00");
