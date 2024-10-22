@@ -83,7 +83,7 @@ public class ThermometerActivity extends AppCompatActivity {
     private void dataStructure() {
         HashMap<String, String> map = new HashMap<>();
         map.put("id", key);
-        map.put("strumento", "sfigmomanometro");
+        map.put("strumento", "termometro");
         map.put("valore", temperature);
         //ToDo gestione della data e dell'ora
         map.put("data", "25/05/2000");
