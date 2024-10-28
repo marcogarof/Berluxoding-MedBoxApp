@@ -18,16 +18,13 @@ public class  MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        new Handler().postDelayed(() -> {
 
-                // definisco l'intenzione di aprire l'Activity "Page1.java"
-                Intent openPage = new Intent(MainActivity.this, AuthenticationActivity.class);
-                // passo all'attivazione dell'activity page1.java
-                startActivity(openPage);
-                finish();
-            }
-        }, 2000);
+            // definisco l'intenzione di aprire l'Activity "Page1.java"
+            Intent openPage = new Intent(MainActivity.this, AuthenticationActivity.class);
+            // passo all'attivazione dell'activity page1.java
+            startActivity(openPage);
+            finish();
+        }, 100);
     }
 }

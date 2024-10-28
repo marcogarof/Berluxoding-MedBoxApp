@@ -6,15 +6,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 import it.uniba.berluxoding.medboxapp.R;
@@ -53,18 +49,15 @@ public class AuthenticationActivity extends AppCompatActivity {
         String user = "medbox@app.it";
         String pass = "password123";
         mAuth.signInWithEmailAndPassword(user, pass)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "signIn:onComplete:" + task.isSuccessful());
-                        // hideProgressBar();
+                .addOnCompleteListener(this, task -> {
+                    Log.d(TAG, "signIn:onComplete:" + task.isSuccessful());
+                    // hideProgressBar();
 
-                        if (task.isSuccessful()) {
-                            onAuthSuccess();
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Sign In Failed",
-                                    Toast.LENGTH_SHORT).show();
-                        }
+                    if (task.isSuccessful()) {
+                        onAuthSuccess();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Sign In Failed",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }

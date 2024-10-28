@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -33,14 +34,23 @@ public class WaitingActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    @Override
+    protected void onStart () {
+        super.onStart();
 
         // Riferimento al nodo 'medbox/richiesta'
         DatabaseReference richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
 
-// Listener per ricevere nuove richieste
-        richiestaRef.addValueEventListener(new ValueEventListener() {
+        setListener(richiestaRef);
+    }
+
+    private void setListener(DatabaseReference ref) {
+        // Listener per ricevere nuove richieste
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     // Leggi la richiesta
                     String userId = dataSnapshot.child("userId").getValue(String.class);
@@ -49,9 +59,9 @@ public class WaitingActivity extends AppCompatActivity {
                     Log.d("Firebase", "Richiesta ricevuta: userId=" + userId + ", strumento=" + strumento);
 
 
-                    richiestaRef.removeEventListener(this);// Rimuovi il listener
+                    ref.removeEventListener(this);// Rimuovi il listener
                     //rimuovi la richiesta
-                    richiestaRef.removeValue()
+                    ref.removeValue()
                             .addOnSuccessListener(aVoid -> Log.d("Firebase", "Rischiesta eliminata con successo."))
                             .addOnFailureListener(e -> Log.e("Firebase", "Errore nell'eliminazione della richiesta: " + e.getMessage()));
                     //apri nuova activity
@@ -60,7 +70,7 @@ public class WaitingActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e("Firebase", "Errore nel recupero della richiesta: " + databaseError.getMessage());
             }
         });

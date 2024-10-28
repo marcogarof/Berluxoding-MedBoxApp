@@ -19,8 +19,7 @@ import it.uniba.berluxoding.medboxapp.R;
 
 public class ThermometerActivity extends AppCompatActivity {
 
-    private Button lowerLimit, superiorLimit, burningLimit;
-    private DatabaseReference mDatabase, userRef;
+    private DatabaseReference mDatabase;
     private String temperature, key, savePath, savePath2, savePath3;
     private final String TAG = "THERMOMETER_ACTIVITY";
 
@@ -44,7 +43,7 @@ public class ThermometerActivity extends AppCompatActivity {
 
     private void setReferences (String userId) {
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        userRef = mDatabase.child("AsilApp").child(userId);
+        DatabaseReference userRef = mDatabase.child("AsilApp").child(userId);
         key = userRef.child("misurazioni").push().getKey();
         savePath = "AsilApp/" + userId + "/misurazioni/" + key;
         savePath2 = "AsilApp/" + userId + "/misurazioni-strumento/termometro/" + key;
@@ -53,9 +52,9 @@ public class ThermometerActivity extends AppCompatActivity {
 
     private void buttonBinding() {
         Log.d(TAG, "button binding!");
-        lowerLimit = findViewById(R.id.lower_limit);
-        burningLimit = findViewById(R.id.burning_limit);
-        superiorLimit = findViewById(R.id.superior_limit);
+        Button lowerLimit = findViewById(R.id.lower_limit);
+        Button burningLimit = findViewById(R.id.burning_limit);
+        Button superiorLimit = findViewById(R.id.superior_limit);
 
         /**
          * Valore limite inferiore delle temperature normali
@@ -80,6 +79,7 @@ public class ThermometerActivity extends AppCompatActivity {
             dataStructure();
         });
     }
+
     private void dataStructure() {
         HashMap<String, String> map = new HashMap<>();
         map.put("id", key);
