@@ -718,7 +718,7 @@ public class HeartRateMonitorActivity extends AppCompatActivity {
         map.put("strumento", "cardifrequenzimetro");
         map.put("valore", valore);
         //ToDo gestione della data e dell'ora
-        map.put("data", "02/12/1994");
+        map.put("data", "1994/12/02");
         map.put("orario", "12:00");
 
         save(map);

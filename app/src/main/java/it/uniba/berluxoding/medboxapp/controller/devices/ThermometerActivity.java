@@ -86,7 +86,7 @@ public class ThermometerActivity extends AppCompatActivity {
         map.put("strumento", "termometro");
         map.put("valore", temperature);
         //ToDo gestione della data e dell'ora
-        map.put("data", "25/05/2000");
+        map.put("data", "2000/05/25");
         map.put("orario", "13:00");
 
         save(map);
