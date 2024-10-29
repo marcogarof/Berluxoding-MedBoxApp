@@ -23,6 +23,8 @@ import it.uniba.berluxoding.medboxapp.controller.devices.HeartRateMonitorActivit
 import it.uniba.berluxoding.medboxapp.controller.devices.ThermometerActivity;
 
 public class WaitingActivity extends AppCompatActivity {
+    DatabaseReference richiestaRef;
+    ValueEventListener listener;
 
     @Override
     protected void onCreate (Bundle savedInstanceState) {
@@ -41,14 +43,22 @@ public class WaitingActivity extends AppCompatActivity {
         super.onStart();
 
         // Riferimento al nodo 'medbox/richiesta'
-        DatabaseReference richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
+        richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
 
         setListener(richiestaRef);
     }
 
+    @Override
+    protected void onPause () {
+        super.onPause();
+        richiestaRef.removeEventListener(listener);
+    }
+
+
     private void setListener(DatabaseReference ref) {
         // Listener per ricevere nuove richieste
-        ref.addValueEventListener(new ValueEventListener() {
+
+        listener = ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
