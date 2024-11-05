@@ -50,11 +50,9 @@ public class WaitingActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // Riferimento al nodo 'medbox/richiesta'
+        // Riferimento al nodo 'medbox/richiesta' nel database Firebase
         richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
 
-        // Riferimento al nodo 'medbox/richiesta' nel database Firebase
-        DatabaseReference richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
         setListener(richiestaRef);
     }
 
@@ -71,10 +69,7 @@ public class WaitingActivity extends AppCompatActivity {
      * @param ref Riferimento al nodo nel database da monitorare.
      */
     private void setListener(DatabaseReference ref) {
-        // Listener per ricevere nuove richieste
-
         listener = ref.addValueEventListener(new ValueEventListener() {
-        ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
