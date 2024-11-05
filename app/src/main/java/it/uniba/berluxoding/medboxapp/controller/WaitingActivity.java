@@ -22,15 +22,23 @@ import it.uniba.berluxoding.medboxapp.controller.devices.BloodPressureActivity;
 import it.uniba.berluxoding.medboxapp.controller.devices.HeartRateMonitorActivity;
 import it.uniba.berluxoding.medboxapp.controller.devices.ThermometerActivity;
 
+/**
+ * Activity che si occupa di monitorare le richieste di accesso agli strumenti medici.
+ * Una volta ricevuta una richiesta, naviga alla schermata appropriata in base allo strumento richiesto.
+ */
 public class WaitingActivity extends AppCompatActivity {
     DatabaseReference richiestaRef;
     ValueEventListener listener;
 
     @Override
-    protected void onCreate (Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Abilita EdgeToEdge per un layout a schermo intero
         EdgeToEdge.enable(this);
+        // Imposta il layout per questa activity
         setContentView(R.layout.activity_waiting);
+
+        // Gestisce i margini per schermi a tutto schermo
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -39,12 +47,14 @@ public class WaitingActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart () {
+    protected void onStart() {
         super.onStart();
 
         // Riferimento al nodo 'medbox/richiesta'
         richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
 
+        // Riferimento al nodo 'medbox/richiesta' nel database Firebase
+        DatabaseReference richiestaRef = FirebaseDatabase.getInstance().getReference("medbox/richiesta");
         setListener(richiestaRef);
     }
 
@@ -55,26 +65,32 @@ public class WaitingActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Imposta un listener per ascoltare le nuove richieste nel database Firebase.
+     *
+     * @param ref Riferimento al nodo nel database da monitorare.
+     */
     private void setListener(DatabaseReference ref) {
         // Listener per ricevere nuove richieste
 
         listener = ref.addValueEventListener(new ValueEventListener() {
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // Leggi la richiesta
+                    // Leggi i dati della richiesta
                     String userId = dataSnapshot.child("userId").getValue(String.class);
                     String strumento = dataSnapshot.child("strumento").getValue(String.class);
 
                     Log.d("Firebase", "Richiesta ricevuta: userId=" + userId + ", strumento=" + strumento);
 
-
-                    ref.removeEventListener(this);// Rimuovi il listener
-                    //rimuovi la richiesta
+                    // Rimuove il listener e cancella la richiesta dal database
+                    ref.removeEventListener(this);
                     ref.removeValue()
-                            .addOnSuccessListener(aVoid -> Log.d("Firebase", "Rischiesta eliminata con successo."))
+                            .addOnSuccessListener(aVoid -> Log.d("Firebase", "Richiesta eliminata con successo."))
                             .addOnFailureListener(e -> Log.e("Firebase", "Errore nell'eliminazione della richiesta: " + e.getMessage()));
-                    //apri nuova activity
+
+                    // Apre la nuova activity in base allo strumento richiesto
                     openInstrument(strumento, userId);
                 }
             }
@@ -86,27 +102,30 @@ public class WaitingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Avvia la schermata corrispondente allo strumento richiesto dall'utente.
+     *
+     * @param strumento Il nome dello strumento richiesto.
+     * @param uId       L'ID dell'utente che ha effettuato la richiesta.
+     */
     private void openInstrument(String strumento, String uId) {
-        // In base al servizio ricevuto, naviga alla giusta Activity
-        if ("cardifrequenzimetro".equals(strumento)) {
-            // Naviga alla Activity per il servizio Chitarra
-            Intent intent = new Intent(this, HeartRateMonitorActivity.class);
-            intent.putExtra("userId", uId);
-            startActivity(intent);
-        } else if ("sfigmomanometro".equals(strumento)) {
-            // Naviga alla Activity per il servizio Batteria
-            Intent intent = new Intent(this, BloodPressureActivity.class);
-            intent.putExtra("userId", uId);
-            startActivity(intent);
-        } else if ("termometro".equals(strumento)) {
-            // Naviga alla Activity per il servizio Batteria
-            Intent intent = new Intent(this, ThermometerActivity.class);
-            intent.putExtra("userId", uId);
-            startActivity(intent);
-        } /*else {
-            // Naviga a una schermata di errore o gestione non riconosciuta
-            Intent intent = new Intent(this, ErrorActivity.class);
-            startActivity(intent);
-        }*/
+        if ("cardifrequenzimetro".equals(strumento))
+            startActivityWithIntent(HeartRateMonitorActivity.class, uId);
+        else if ("sfigmomanometro".equals(strumento))
+            startActivityWithIntent(BloodPressureActivity.class, uId);
+        else if ("termometro".equals(strumento))
+            startActivityWithIntent(ThermometerActivity.class, uId);
+    }
+
+    /**
+     * Avvia una nuova attività, passando l'ID dell'utente come extra.
+     *
+     * @param targetActivity La classe dell'attività da avviare.
+     * @param uId            L'ID dell'utente che ha richiesto lo strumento.
+     */
+    private void startActivityWithIntent(Class<?> targetActivity, String uId) {
+        Intent intent = new Intent(WaitingActivity.this, targetActivity);
+        intent.putExtra("userId", uId);
+        startActivity(intent);
     }
 }
